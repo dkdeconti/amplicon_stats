@@ -2,6 +2,8 @@
 
 import argparse
 from collection import defaultdict
+import numpy
+import matplotlib.pyplot as plt
 import pysam
 import matplotlib
 import re
@@ -9,13 +11,22 @@ import re
 
 def plot_depth(pileups, locus, bams):
     """Plots depth across given loci."""
+    chrom, begin, end = locus
+    begin = int(begin)
     plot_map = defaultdict(list)
     filenames = [re.sub('\.bam$', '', bam) for bam in bams]
-    for pileup in pileups:
+    plot_file = '-'.join(locus) + '.png'
+    for i, pileup in enumerate(pileups):
         # TODO add a filepath
-        plot_file = '-'.join(locus) + '.png'
-        
-        
+        fig, axarray = plt.subplots(nrows=len(pileups),
+                                    ncols=1,
+                                    figsize=(8, 2*len(pileups)),
+                                    sharex=True)
+        axarray[i].plot(range(begin, len(pileups) + begin),
+                        pileup)
+        axarray[i].set_title(filenames[i])
+    fig.savefig(plot_file)
+    fig.close()
 
         
 def parse_bam_for_pileup(bams, loci, buf):
@@ -23,7 +34,7 @@ def parse_bam_for_pileup(bams, loci, buf):
     pileups = {}
     for locus in loci:
         chrom = locus[0]
-        begin = int(locus[1])
+        begin = int(locus[1]) -1
         end = int(locus[2])
         pileups[loci] = [get_pileup_vector(bam, chrom, begin, end, buf)
                          for bam in bams]
