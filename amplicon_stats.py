@@ -2,17 +2,32 @@
 
 import argparse
 from collection import defaultdict
+import pysam
 import matplotlib
 import re
 
 
-def plot_depth(bams, locus):
+def plot_depth(pileups, locus):
     """Plots depth across given loci."""
     plot_map = defaultdict(list)
-    for bam in bams:
-        samplename = bam[re.search(".bam", bam).start() : ]
-        chrom, begin, end = locus
+    #
         
+def parse_bam_for_pileup(bams, loci):
+    """Parses BAM for pileup data into map by locus key."""
+    pileups = {}
+    for locus in loci:
+        chrom = locus[0]
+        begin = int(locus[1])
+        end = int(locus[2])
+        pileups[loci] = [get_pileup_vector(bam, chrom, begin, end)
+                         for bam in bams]
+    return pileups
+
+
+def get_pileup_vector(bam, chrom, begin, end):
+    """Get depth vector from bam given pos."""
+    return [p.nsegments
+            for p in pysam.AlignmentFile(bam, 'rb').pileup(chrom, begin, end)]
 
 
 def main():
