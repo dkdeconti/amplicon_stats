@@ -13,7 +13,6 @@ def plot_depth(pileups, locus, bams):
     """Plots depth across given loci."""
     chrom, begin, end = locus
     begin = int(begin)
-    plot_map = defaultdict(list)
     filenames = [re.sub('\.bam$', '', bam) for bam in bams]
     plot_file = '-'.join(locus) + '.png'
     for i, pileup in enumerate(pileups):
@@ -22,11 +21,11 @@ def plot_depth(pileups, locus, bams):
                                     ncols=1,
                                     figsize=(8, 2*len(pileups)),
                                     sharex=True)
-        axarray[i].plot(range(begin, len(pileups) + begin),
-                        pileup)
+        axarray[i].plot(range(begin, len(pileups) + begin), pileup)
         axarray[i].set_title(filenames[i])
     fig.savefig(plot_file)
     fig.close()
+    return plot_file
 
         
 def parse_bam_for_pileup(bams, loci, buf):
