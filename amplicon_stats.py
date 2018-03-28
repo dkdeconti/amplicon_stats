@@ -14,10 +14,12 @@ def create_report():
     """Inserts files into template HTML."""
     this_dir = os.path.dirname(os.path.realpath(__file__))
     lib_dir = os.path.join(this_dir, "lib")
+    template_filepath = os.path.join(this_dir, "template.html")
     report_dir = ""
+    report = os.path.join(report_dir, "html_report.html")
     report = '/'.join([report_dir, "html_report.html"])
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(this_dir))
-    template = env.get_template("template.html")
+    template = env.get_template(template_filepath)
     samples = {}
     context = {"samples": samples}
     with open(report, 'w') as outfile:
@@ -90,7 +92,7 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
     fig.savefig(plot_file)
     plt.close()
     return plot_file
- 
+
         
 def parse_bam_for_pileup(bams, loci, buf):
     """Parses BAM for pileup data into map by locus key."""
