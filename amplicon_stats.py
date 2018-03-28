@@ -24,7 +24,7 @@ def create_report():
     context = {"samples": samples}
     with open(report, 'w') as outfile:
         outfile.write(template.render(context))
-    pass
+    
 
 
 def plot_depth_across_locus(pileups, locus, bams, buf):
