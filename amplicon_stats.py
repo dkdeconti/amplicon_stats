@@ -1,11 +1,28 @@
 #!/usr/bin/env python
 
 import argparse
+import jinja2
 import numpy
 import matplotlib.pyplot as plt
+import os
 import pysam
 import matplotlib
 import re
+
+
+def create_report():
+    """Inserts files into template HTML."""
+    this_dir = os.path.dirname(os.path.realpath(__file__))
+    lib_dir = os.path.join(this_dir, "lib")
+    report_dir = ""
+    report = '/'.join([report_dir, "html_report.html"])
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(this_dir))
+    template = env.get_template("template.html")
+    samples = {}
+    context = {"samples": samples}
+    with open(report, 'w') as outfile:
+        outfile.write(template.render(context))
+    pass
 
 
 def plot_depth_across_locus(pileups, locus, bams, buf):
