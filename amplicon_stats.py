@@ -45,6 +45,7 @@ def plot_depth_across_locus(pileups, locus, bams, buf):
         axarray.axvline(begin, color='r')
         axarray.axvline(end, color='r')
         axarray.set_title(filenames[0])
+        axarray.set_ylabel("depth")
     else:
         for i, pileup in enumerate(pileups):
             axarray[i].plot(range(begin - buf, len(pileup) + begin - buf),
@@ -52,6 +53,8 @@ def plot_depth_across_locus(pileups, locus, bams, buf):
             axarray[i].axvline(begin, color='r')
             axarray[i].axvline(end, color='r')
             axarray[i].set_title(filenames[i])
+            axarray[i].set_ylabel("depth")
+    plt.xlabel("genomic position")
     fig.savefig(plot_file)
     plt.close()
     return plot_file
@@ -76,9 +79,12 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
         axarray[0].plot(range(begin - buf, begin + buf), pileup[:2*buf])
         axarray[0].axvline(begin, color='r')
         axarray[0].set_title(filenames[0] + " - 5\' of locus")
+        axarray[0].set_xlabel("genomic position about 5' amplicon site")
+        axarray[0].set_ylabel("depth")
         axarray[1].plot(range(end - buf, end + buf), pileup[-(2*buf):])
         axarray[1].axvline(end, color='r')
         axarray[1].set_title(filenames[0] + " - 3\' of locus")
+        axarray[0].set_xlabel("genomic position about 3' amplicon site")
     else:
         for i, pileup in enumerate(pileups):
             print (begin + buf) - (begin - buf)
@@ -86,9 +92,12 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
             axarray[i, 0].plot(range(begin - buf, begin + buf), pileup[:2*buf])
             axarray[i, 0].axvline(begin, color='r')
             axarray[i, 0].set_title(filenames[0] + " - 5\' of locus")
+            axarray[i, 0].set_ylabel('depth')
             axarray[i, 1].plot(range(end - buf, end + buf), pileup[-(2*buf):])
             axarray[i, 1].axvline(end, color='r')
             axarray[i, 1].set_title(filenames[0] + " - 3\' of locus")
+        axarray[i, 0].set_xlabel("genomic position about 5' amplicon site")
+        axarray[i, 1].set_xlabel("genomic position about 3' amplicon site")
     fig.savefig(plot_file)
     plt.close()
     return plot_file
