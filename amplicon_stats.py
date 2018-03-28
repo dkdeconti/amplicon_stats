@@ -35,7 +35,8 @@ def plot_depth_across_locus(pileups, locus, bams, buf):
     fig, axarray = plt.subplots(nrows=len(pileups),
                                 ncols=1,
                                 figsize=(16, 4*len(pileups)),
-                                sharex=True)
+                                sharex=True,
+                                sharey=True)
     if len(pileups) == 1:
         pileup = pileups[0]
         axarray.plot(range(begin - buf, len(pileup) + begin - buf), pileup)
@@ -64,7 +65,8 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
     fig, axarray = plt.subplots(nrows=len(pileups),
                                 ncols=2,
                                 figsize=(8, 4*len(pileups)),
-                                sharey=True)
+                                sharey=True,
+                                sharex='col')
     if len(pileups) == 1:
         pileup = pileups[0]
         print (begin + buf) - (begin - buf)
@@ -77,11 +79,13 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
         axarray[1].set_title(filenames[0] + " - 3\' of locus")
     else:
         for i, pileup in enumerate(pileups):
+            print (begin + buf) - (begin - buf)
+            print len(pileup[:2*buf])
             axarray[i, 0].plot(range(begin - buf, begin + buf), pileup[:2*buf])
-            axarray[i, 0].plot(begin, color='r')
+            axarray[i, 0].axvline(begin, color='r')
             axarray[i, 0].set_title(filenames[0] + " - 5\' of locus")
-            axarray[i, 1].plot(range(end - buf, end + buf), pileup[-2*buf:])
-            axarray[i, 1].plot(end, color='r')
+            axarray[i, 1].plot(range(end - buf, end + buf), pileup[-(2*buf):])
+            axarray[i, 1].axvline(end, color='r')
             axarray[i, 1].set_title(filenames[0] + " - 3\' of locus")
     fig.savefig(plot_file)
     plt.close()
