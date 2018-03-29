@@ -6,6 +6,7 @@ import numpy
 import matplotlib.pyplot as plt
 import os
 import pysam
+import shutil
 import matplotlib
 import re
 
@@ -15,22 +16,29 @@ def create_report():
     this_dir = os.path.dirname(os.path.realpath(__file__))
     lib_dir = os.path.join(this_dir, "lib")
     template_filepath = os.path.join(this_dir, "template.html")
-    report_dir = ""
+    report_dir = "/home/ddeconti/scratch/wg/"
+    lib_destination = os.path.join(report_dir, "lib")
     report = os.path.join(report_dir, "html_report.html")
     report = '/'.join([report_dir, "html_report.html"])
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(this_dir))
-    template = env.get_template(template_filepath)
-    samples = {}
-    context = {"samples": samples}
+    #template = env.get_template(template_filepath)
+    template = env.get_template("template.html")
+    loci_depths = {"locus": {'locus': "chr17-7490896-7497882",
+                             'whole': "chr17-7490896-7497882.across_whole_locus_depth.png",
+                             'sites': "chr17-7490896-7497882.cut_site_boundary_depth.png"}}
+    #loci_depths = {"locus": {'locus': "locus position"}
+    #               for locus in loci}
+    context = {"loci_depths": loci_depths}
     with open(report, 'w') as outfile:
         outfile.write(template.render(context))
-    
+    shutil.copytree(lib_dir, lib_destination)
 
 
 def plot_depth_across_locus(pileups, locus, bams, buf):
     """Plots depth across given loci."""
     chrom, begin, end = locus
     begin = int(begin)
+    end = int(end)
     filenames = [re.sub('\.bam$', '', bam) for bam in bams]
     plot_file = '-'.join(locus) + '.across_whole_locus_depth.png'
     # TODO add a file path
@@ -69,7 +77,7 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
     plot_file = '-'.join(locus) + '.cut_site_boundary_depth.png'
     fig, axarray = plt.subplots(nrows=len(pileups),
                                 ncols=2,
-                                figsize=(8, 4*len(pileups)),
+                                figsize=(16, 4*len(pileups)),
                                 sharey=True,
                                 sharex='col')
     if len(pileups) == 1:
@@ -84,7 +92,7 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
         axarray[1].plot(range(end - buf, end + buf), pileup[-(2*buf):])
         axarray[1].axvline(end, color='r')
         axarray[1].set_title(filenames[0] + " - 3\' of locus")
-        axarray[0].set_xlabel("genomic position about 3' amplicon site")
+        axarray[1].set_xlabel("genomic position about 3' amplicon site")
     else:
         for i, pileup in enumerate(pileups):
             print (begin + buf) - (begin - buf)
@@ -124,6 +132,11 @@ def get_pileup_vector(bam, chrom, begin, end, buf):
     return depth
 
 
+def get_stats(bams, locus):
+    """"""
+    pass
+
+
 def main():
     """"""
     # arg parsing
@@ -141,6 +154,7 @@ def main():
     print args.bam
     print args.loci
     pileups = parse_bam_for_pileup(args.bam, args.loci, args.buf)
+
     for locus in args.loci:
         plot_depth_across_locus(pileups[tuple(locus)],
                                 locus,
@@ -150,6 +164,8 @@ def main():
                                     locus,
                                     args.bam,
                                     args.buf)
+        #get_stats(args.bam, locus)
+    create_report()
 
 
 if __name__ == "__main__":
