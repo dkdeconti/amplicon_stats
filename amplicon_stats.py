@@ -11,7 +11,7 @@ import matplotlib
 import re
 
 
-def create_report(plots_map):
+def create_report(plots_map, stats_map):
     """Inserts files into template HTML."""
     this_dir = os.path.dirname(os.path.realpath(__file__))
     lib_dir = os.path.join(this_dir, "lib")
@@ -23,12 +23,8 @@ def create_report(plots_map):
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(this_dir))
     #template = env.get_template(template_filepath)
     template = env.get_template("template.html")
-    #loci_depths = {"locus": {'locus': "chr17-7490896-7497882",
-    #                         'whole': "chr17-7490896-7497882.across_whole_locus_depth.png",
-    #                         'sites': "chr17-7490896-7497882.cut_site_boundary_depth.png"}}
-    #loci_depths = {"locus": {'locus': "locus position"}
-    #               for locus in loci}
-    context = {"loci_depths": plots_map}
+    context = {"loci_depths": plots_map,
+               "bam_stats": stats_map}
     with open(report, 'w') as outfile:
         outfile.write(template.render(context))
     shutil.copytree(lib_dir, lib_destination)
@@ -128,9 +124,33 @@ def get_pileup_vector(bam, chrom, begin, end, buf):
     return depth
 
 
-def get_stats(bams, locus):
-    """"""
-    pass
+def get_stats(bams, loci):
+    """Calculates stats for alignments."""
+    stats = {}
+    for bamfilename in bams:
+        samplename = re.sub("\.bam", "", bamfilename)
+        bam = pysam.AlignmentFile(bamfilename, 'rb')
+        aln_rate = round(int(bam.mapped)/float(bam.mapped+bam.unmapped)*100, 2)
+        loci_counts = [bam.count(chrom, int(begin), int(end))
+                       for chrom, begin, end in loci]
+        loci_rate = sum(loci_counts) / float(bam.mapped) * 100
+        loci_covered = 0
+        loci_depth = 0
+        for chrom, begin, end in loci:
+            begin = int(begin)
+            end = int(end)
+            for base in bam.count_coverage(chrom, begin, end):
+                loci_covered += len([b for b in base if b != 0])
+                loci_depth += sum(base)
+        loci_area = sum([int(end) - int(begin) for chrom, begin, end in loci])
+        loci_mean_depth = loci_depth / float(loci_area)
+        loci_coverage = round(loci_covered / float(loci_area) * 100, 2)
+        stats[bamfilename] = {"samplename": samplename,
+                              "aln_rate": str(aln_rate) + "%",
+                              "loci_rate": str(loci_rate) + "%",
+                              "loci_coverage": str(loci_coverage) + "%",
+                              "loci_mean_depth": loci_mean_depth}
+    return stats
 
 
 def main():
@@ -162,8 +182,8 @@ def main():
         plots_map['-'.join(locus)] = {"locus": '-'.join(locus),
                                       "whole": whole,
                                       "sites": sites}
-        #get_stats(args.bam, locus)
-    create_report(plots_map)
+    stats_map = get_stats(args.bam, args.loci)
+    create_report(plots_map, stats_map)
 
 
 if __name__ == "__main__":

@@ -112,7 +112,24 @@
 				</p>
 			</div>
 			<div id="all-div" class=class="col-sm-10 main-frame hidden-div">
-
+				<table class="table">
+					<TR>
+						<TD class="c1"><b>sample</b></TD>
+						<TD class="c2"><b>alignment rate</b></TD>
+						<TD class="c3"><b>alignment to loci rate</b></TD>
+						<TD class="c4"><b>loci coverage</b></TD>
+						<TD class="c5"><b>loci mean depth</b></TD>
+					</TR>
+					{% for sample, stats_dict in bam_stats.iteritems() %}
+						<TR>
+							<TD class="c1">{{stats_dict.samplename}}</TD>
+							<TD class="c2">{{stats_dict.aln_rate}}</TD>
+							<TD class="c3">{{stats_dict.loci_rate}}</TD>
+							<TD class="c4">{{stats_dict.loci_coverage}}</TD>
+							<TD class="c5">{{stats_dict.loci_mean_depth}}</TD>
+						</TR>
+					{% endfor %}
+				</table>
 			</div>
 			{% for locus, locus_map in loci_depths.iteritems() %}
 			<div id="{{locus_map['locus']}}-div" class="col-sm-10 main-frame hidden-div">
