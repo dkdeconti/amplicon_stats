@@ -11,7 +11,7 @@ import matplotlib
 import re
 
 
-def create_report():
+def create_report(plots_map):
     """Inserts files into template HTML."""
     this_dir = os.path.dirname(os.path.realpath(__file__))
     lib_dir = os.path.join(this_dir, "lib")
@@ -23,12 +23,12 @@ def create_report():
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(this_dir))
     #template = env.get_template(template_filepath)
     template = env.get_template("template.html")
-    loci_depths = {"locus": {'locus': "chr17-7490896-7497882",
-                             'whole': "chr17-7490896-7497882.across_whole_locus_depth.png",
-                             'sites': "chr17-7490896-7497882.cut_site_boundary_depth.png"}}
+    #loci_depths = {"locus": {'locus': "chr17-7490896-7497882",
+    #                         'whole': "chr17-7490896-7497882.across_whole_locus_depth.png",
+    #                         'sites': "chr17-7490896-7497882.cut_site_boundary_depth.png"}}
     #loci_depths = {"locus": {'locus': "locus position"}
     #               for locus in loci}
-    context = {"loci_depths": loci_depths}
+    context = {"loci_depths": plots_map}
     with open(report, 'w') as outfile:
         outfile.write(template.render(context))
     shutil.copytree(lib_dir, lib_destination)
@@ -82,8 +82,6 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
                                 sharex='col')
     if len(pileups) == 1:
         pileup = pileups[0]
-        print (begin + buf) - (begin - buf)
-        print len(pileup[:2*buf])
         axarray[0].plot(range(begin - buf, begin + buf), pileup[:2*buf])
         axarray[0].axvline(begin, color='r')
         axarray[0].set_title(filenames[0] + " - 5\' of locus")
@@ -95,8 +93,6 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
         axarray[1].set_xlabel("genomic position about 3' amplicon site")
     else:
         for i, pileup in enumerate(pileups):
-            print (begin + buf) - (begin - buf)
-            print len(pileup[:2*buf])
             axarray[i, 0].plot(range(begin - buf, begin + buf), pileup[:2*buf])
             axarray[i, 0].axvline(begin, color='r')
             axarray[i, 0].set_title(filenames[0] + " - 5\' of locus")
@@ -144,28 +140,30 @@ def main():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("-l", "--loci", required=True,
                         nargs=3, metavar=("chr", "begin", "end"),
-                        action="append", help="comma-delimited loci [required]")
+                        action="append", 
+                        help="comma-delimited loci [required]")
     parser.add_argument("--buf", metavar="BUFFER", type=int, default=1000,
                         help="buffer about the loci to include in plots")
     parser.add_argument("-b", "--bam", metavar="BAM", nargs='+',
                         required=True, help="BAM file(s) [required]")
     args = parser.parse_args()
     # central dispatch
-    print args.bam
-    print args.loci
     pileups = parse_bam_for_pileup(args.bam, args.loci, args.buf)
-
+    plots_map = {}
     for locus in args.loci:
-        plot_depth_across_locus(pileups[tuple(locus)],
-                                locus,
-                                args.bam,
-                                args.buf)
-        plot_depth_about_locus_ends(pileups[tuple(locus)],
-                                    locus,
-                                    args.bam,
-                                    args.buf)
+        whole = plot_depth_across_locus(pileups[tuple(locus)],
+                                        locus,
+                                        args.bam,
+                                        args.buf)
+        sites = plot_depth_about_locus_ends(pileups[tuple(locus)],
+                                            locus,
+                                            args.bam,
+                                            args.buf)
+        plots_map['-'.join(locus)] = {"locus": '-'.join(locus),
+                                      "whole": whole,
+                                      "sites": sites}
         #get_stats(args.bam, locus)
-    create_report()
+    create_report(plots_map)
 
 
 if __name__ == "__main__":
