@@ -16,10 +16,11 @@ def create_report(plots_map, stats_map):
     this_dir = os.path.dirname(os.path.realpath(__file__))
     lib_dir = os.path.join(this_dir, "lib")
     template_filepath = os.path.join(this_dir, "template.html")
-    report_dir = "/home/ddeconti/scratch/wg/"
+    # TODO add dynamic report_dir addition
+    report_dir = os.getcwd()
     lib_destination = os.path.join(report_dir, "lib")
     report = os.path.join(report_dir, "html_report.html")
-    report = '/'.join([report_dir, "html_report.html"])
+    #report = '/'.join([report_dir, "html_report.html"])
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(this_dir))
     #template = env.get_template(template_filepath)
     template = env.get_template("template.html")
@@ -91,10 +92,12 @@ def plot_depth_about_locus_ends(pileups, locus, bams, buf):
         for i, pileup in enumerate(pileups):
             axarray[i, 0].plot(range(begin - buf, begin + buf), pileup[:2*buf])
             axarray[i, 0].axvline(begin, color='r')
+            axarray[i, 0].axvspan(begin - buf, begin, color = 'r', alpha = 0.25)
             axarray[i, 0].set_title(filenames[0] + " - 5\' of locus")
             axarray[i, 0].set_ylabel('depth')
             axarray[i, 1].plot(range(end - buf, end + buf), pileup[-(2*buf):])
             axarray[i, 1].axvline(end, color='r')
+            axarray[i, 1].axvspan(end, end + buf, color = 'r', alpha = 0.25)
             axarray[i, 1].set_title(filenames[0] + " - 3\' of locus")
         axarray[i, 0].set_xlabel("genomic position about 5' amplicon site")
         axarray[i, 1].set_xlabel("genomic position about 3' amplicon site")
